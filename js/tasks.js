@@ -18,8 +18,13 @@ const configData = require('./configData.js');
  * Приклад: "  test@mail.com  " -> "test@mail.com"
  */
 function normalizeEmail(rawEmail) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('isValidEmail: не реалізовано');
+    if (rawEmail === null || rawEmail === undefined)
+        {
+            return rawEmail = "";
+        }
+    rawEmail = rawEmail.trim();
+    
+    return rawEmail;
 }
 
 /**
@@ -30,8 +35,8 @@ function normalizeEmail(rawEmail) {
  * Приклад: "test@mail.com" -> true, "invalid-email" -> false
  */
 function isValidEmail(email) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('isValidEmail: не реалізовано');
+    return email.includes("@") ? true : false;
+    
 }
 
 /**
@@ -43,8 +48,16 @@ function isValidEmail(email) {
  * Приклад: "12345678" -> true, "12345" -> false, null -> false
  */
 function isValidPassword(rawPassword) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('isValidPassword: не реалізовано');
+    if (
+        typeof rawPassword === "string" &&
+        rawPassword.length >= configData.env.minPasswordLength) 
+     {
+            return true;
+        } 
+    else  
+        {
+            return false;
+        }
 }
 
 /**
@@ -56,8 +69,17 @@ function isValidPassword(rawPassword) {
  * Приклад: "  admin  " -> "admin", "" -> configData.env.defaultRole
  */
 function resolveRole(rawRole) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('resolveRole: не реалізовано');
+    if (rawRole === null || rawRole === undefined) {
+        return configData.env.defaultRole;
+    }
+
+    rawRole = rawRole.trim();
+
+    if (rawRole === "") {
+        return configData.env.defaultRole;
+    }
+
+    return rawRole;
 }
 
 /**
@@ -74,8 +96,26 @@ function resolveRole(rawRole) {
  * Вихід: рядок JSON або null.
  */
 function generateRequestBody(rawEmail, rawPassword, role) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('generateRequestBody: не реалізовано');
+    
+    let email = normalizeEmail(rawEmail);
+    if (!isValidEmail(email)) {
+        return null;
+    }
+
+    if (!isValidPassword(rawPassword)) {
+        return null;
+    }
+    
+    let resolvedRole = resolveRole(role);
+
+    let sumStr = JSON.stringify({
+        email: email,
+        password: rawPassword,
+        role: resolvedRole,
+        createdAt: new Date().toISOString()
+})
+    return sumStr;
+
 }
 
 // ==================================================================
@@ -95,8 +135,36 @@ function generateRequestBody(rawEmail, rawPassword, role) {
  * Вихід: true / false.
  */
 function validateResponse(jsonString) {
-    // TODO: реалізуйте цю функцію
-    throw new Error('validateResponse: не реалізовано');
+    if (
+        jsonString === null ||
+        jsonString === undefined ||
+        jsonString === "" ||
+        jsonString.trim() === ""
+    ) {
+        return false;
+    }
+
+    let data;
+
+    try {
+        data = JSON.parse(jsonString);
+    } catch {
+        return false;
+    }
+
+    if (data.status !== "success" || data.code !== 200) {
+        return false;
+    }
+
+    if (
+        typeof data.token !== "string" ||
+        !data.token.trim().includes("bearer")
+    ) {
+        return false;
+    }
+
+    return true;
+
 }
 
 // ==================================================================
